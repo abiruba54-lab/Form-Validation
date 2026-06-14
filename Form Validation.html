@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Account Registration — Form Validation</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1B2A4A;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #1B2A4A;
+    padding: 24px;
+  }
+
+  .card {
+    background: #F7F5F0;
+    width: 100%;
+    max-width: 460px;
+    border-radius: 14px;
+    padding: 40px 36px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #FF6B5C;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    margin: 0 0 24px;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    margin-top: 18px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d8d4cb;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #1B2A4A;
+    box-shadow: 0 0 0 3px rgba(27,42,74,0.12);
+  }
+
+  input.valid { border-color: #4CAF82; }
+  input.invalid { border-color: #E15554; }
+
+  .hint {
+    font-size: 12px;
+    margin-top: 5px;
+    min-height: 16px;
+  }
+
+  .hint.error { color: #E15554; }
+  .hint.success { color: #4CAF82; }
+
+  .pw-rules {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    font-size: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  .pw-rules li { color: #8B95A8; transition: color 0.15s; }
+  .pw-rules li.met { color: #4CAF82; }
+  .pw-rules li::before { content: "○ "; }
+  .pw-rules li.met::before { content: "● "; }
+
+  button {
+    width: 100%;
+    margin-top: 28px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: #1B2A4A;
+    color: #F7F5F0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  button:hover { background: #28406e; }
+  button:active { transform: scale(0.99); }
+
+  .success-banner {
+    display: none;
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: rgba(76,175,130,0.12);
+    color: #4CAF82;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .success-banner.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="eyebrow">Account Registration</div>
+  <h1>Create your account</h1>
+
+  <form id="signupForm" novalidate>
+    <label for="name">Full name</label>
+    <input type="text" id="name" name="name" placeholder="Jane Doe" autocomplete="name" />
+    <div class="hint" id="nameHint"></div>
+
+    <label for="email">Email address</label>
+    <input type="email" id="email" name="email" placeholder="jane@example.com" autocomplete="email" />
+    <div class="hint" id="emailHint"></div>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="new-password" />
+    <ul class="pw-rules" id="pwRules">
+      <li data-rule="length">At least 8 characters</li>
+      <li data-rule="upper">One uppercase letter</li>
+      <li data-rule="number">One number</li>
+      <li data-rule="special">One special character</li>
+    </ul>
+
+    <label for="confirm">Confirm password</label>
+    <input type="password" id="confirm" name="confirm" placeholder="Re-enter your password" autocomplete="new-password" />
+    <div class="hint" id="confirmHint"></div>
+
+    <button type="submit">Create account</button>
+    <div class="success-banner" id="successBanner">Account created — welcome aboard.</div>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById('signupForm');
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const confirmInput = document.getElementById('confirm');
+
+  const nameHint = document.getElementById('nameHint');
+  const emailHint = document.getElementById('emailHint');
+  const confirmHint = document.getElementById('confirmHint');
+  const successBanner = document.getElementById('successBanner');
+  const pwRules = document.querySelectorAll('#pwRules li');
+
+  function setState(input, hintEl, isValid, message) {
+    input.classList.remove('valid', 'invalid');
+    if (input.value === '') {
+      hintEl.textContent = '';
+      hintEl.className = 'hint';
+      return;
+    }
+    if (isValid) {
+      input.classList.add('valid');
+      hintEl.textContent = message || '';
+      hintEl.className = 'hint success';
+    } else {
+      input.classList.add('invalid');
+      hintEl.textContent = message;
+      hintEl.className = 'hint error';
+    }
+  }
+
+  function validateName() {
+    const value = nameInput.value.trim();
+    const isValid = value.length >= 2;
+    setState(nameInput, nameHint, isValid,
+      isValid ? 'Looks good' : 'Enter at least 2 characters');
+    return isValid;
+  }
+
+  function validateEmail() {
+    const value = emailInput.value.trim();
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = pattern.test(value);
+    setState(emailInput, emailHint, isValid,
+      isValid ? 'Looks good' : 'Enter a valid email address');
+    return isValid;
+  }
+
+  function checkPasswordRules() {
+    const value = passwordInput.value;
+    const checks = {
+      length: value.length >= 8,
+      upper: /[A-Z]/.test(value),
+      number: /[0-9]/.test(value),
+      special: /[^A-Za-z0-9]/.test(value)
+    };
+    pwRules.forEach(li => {
+      const rule = li.dataset.rule;
+      li.classList.toggle('met', checks[rule]);
+    });
+    const allMet = Object.values(checks).every(Boolean);
+    passwordInput.classList.remove('valid', 'invalid');
+    if (value !== '') {
+      passwordInput.classList.add(allMet ? 'valid' : 'invalid');
+    }
+    return allMet;
+  }
+
+  function validateConfirm() {
+    const isValid = confirmInput.value !== '' && confirmInput.value === passwordInput.value;
+    setState(confirmInput, confirmHint, isValid,
+      isValid ? 'Passwords match' : 'Passwords do not match');
+    return isValid;
+  }
+
+  nameInput.addEventListener('input', validateName);
+  emailInput.addEventListener('input', validateEmail);
+  passwordInput.addEventListener('input', () => {
+    checkPasswordRules();
+    if (confirmInput.value !== '') validateConfirm();
+  });
+  confirmInput.addEventListener('input', validateConfirm);
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    successBanner.classList.remove('show');
+
+    const validName = validateName();
+    const validEmail = validateEmail();
+    const validPassword = checkPasswordRules();
+    const validConfirm = validateConfirm();
+
+    if (validName && validEmail && validPassword && validConfirm) {
+      successBanner.classList.add('show');
+      form.reset();
+      pwRules.forEach(li => li.classList.remove('met'));
+      [nameInput, emailInput, passwordInput, confirmInput].forEach(el => {
+        el.classList.remove('valid', 'invalid');
+      });
+      nameHint.textContent = '';
+      emailHint.textContent = '';
+      confirmHint.textContent = '';
+    }
+  });
+</script>
+
+</body>
+</html>
